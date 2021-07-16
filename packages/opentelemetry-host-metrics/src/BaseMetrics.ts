@@ -18,6 +18,11 @@ import * as api from '@opentelemetry/api';
 import * as apiMetrics from '@opentelemetry/api-metrics';
 import * as metrics from '@opentelemetry/metrics';
 
+import { CollectorMetricExporter }  from '@opentelemetry/exporter-collector-grpc';
+import { MeterProvider } from '@opentelemetry/metrics';
+import { DiagConsoleLogger, DiagLogLevel, diag } = from '@opentelemetry/api';
+import { Resource } from '@opentelemetry/resources';
+import { ResourceAttributes } from '@opentelemetry/semantic-conventions';
 import { VERSION } from './version';
 
 /**
@@ -60,11 +65,17 @@ export abstract class BaseMetrics {
       config.maxTimeoutUpdateMS || DEFAULT_MAX_TIMEOUT_UPDATE_MS;
     this._metricNameSeparator =
       config.metricNameSeparator || DEFAULT_METRIC_NAME_SEPARATOR;
-    const meterProvider =
-      config.meterProvider! || apiMetrics.metrics.getMeterProvider();
-    if (!config.meterProvider) {
-      this._logger.warn('No meter provider, using default');
-    }
+      const metricExporter = new CollectorMetricExporter({
+        url: 'http://localhost:55680/v1/metrics',
+      });
+
+      const meterProvider = new MeterProvider({
+        exporter: metricExporter,
+        interval: 1000,
+        resource: new Resource({
+          [ResourceAttributes.SERVICE_NAME]: 'basic-metric-service',
+        }),
+      })
     this._meter = meterProvider.getMeter(this._name, VERSION);
   }
 
