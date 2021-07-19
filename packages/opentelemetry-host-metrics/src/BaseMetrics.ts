@@ -65,17 +65,23 @@ export abstract class BaseMetrics {
       config.maxTimeoutUpdateMS || DEFAULT_MAX_TIMEOUT_UPDATE_MS;
     this._metricNameSeparator =
       config.metricNameSeparator || DEFAULT_METRIC_NAME_SEPARATOR;
-      const metricExporter = new CollectorMetricExporter({
-        url: 'http://localhost:55680/v1/metrics',
-      });
+    var host;
+    if (process.env.OS_ENV == "mac"){
+      host = "host.docker.internal";
+    }else{
+      host = "localhost";
+    }
+    const metricExporter = new CollectorMetricExporter({
+      url: "http://"+host+":55680/v1/metrics",
+    });
 
-      const meterProvider = new MeterProvider({
-        exporter: metricExporter,
-        interval: 1000,
-        resource: new Resource({
-          [ResourceAttributes.SERVICE_NAME]: 'basic-metric-service',
-        }),
-      })
+    const meterProvider = new MeterProvider({
+      exporter: metricExporter,
+      interval: 1000,
+      resource: new Resource({
+        [ResourceAttributes.SERVICE_NAME]: 'basic-metric-service',
+      }),
+    })
     this._meter = meterProvider.getMeter(this._name, VERSION);
   }
 

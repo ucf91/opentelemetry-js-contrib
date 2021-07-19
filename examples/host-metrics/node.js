@@ -1,35 +1,15 @@
 'use strict';
 
 const { HostMetrics } = require('@opentelemetry/host-metrics');
-// const { PrometheusExporter } = require('@opentelemetry/exporter-prometheus');
-const { MeterProvider } = require('@opentelemetry/metrics');
-const { CollectorMetricExporter } = require('@opentelemetry/exporter-collector');
+const { DiagConsoleLogger, DiagLogLevel, diag } = require('@opentelemetry/api');
 
-const exporter = new CollectorMetricExporter({
-  headers: {},
-  serviceName: 'test-host-metrics',
-  // url: '',
-});
+diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
 
-// for testing purposes if you don't want to use CollectorMetricExporter
-// const exporter = new PrometheusExporter(
-//   {
-//     startServer: true,
-//   },
-//   () => {
-//     console.log('prometheus scrape endpoint: http://localhost:9464/metrics');
-//   },
-// );
-
-const meterProvider = new MeterProvider({
-  exporter,
-  interval: 2000,
-});
-
-const hostMetrics = new HostMetrics({ meterProvider, name: 'example-host-metrics' });
+const hostMetrics = new HostMetrics({});
 hostMetrics.start();
 
 // keep running
 (function wait() {
   setTimeout(wait, 1000);
 }());
+
